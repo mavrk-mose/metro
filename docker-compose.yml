@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  # PostgreSQL with PostGIS
+  postgres:
+    image: postgis/postgis:16-3.3
+    container_name: metro-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: seoul_metro
+      POSTGRES_INITDB_ARGS: "-c max_connections=200"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - metro
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: metro-redis
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfilename "appendonly.aof"
+      --maxmemory 1gb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - metro
+
+  # NATS with JetStream
+  nats:
+    image: nats:2.10-alpine
+    container_name: metro-nats
+    ports:
+      - "4222:4222"
+      - "6222:6222"
+      - "8222:8222"
+    command: >
+      -jetstream
+      -m 8222
+      --store_dir /data/nats
+    volumes:
+      - nats_data:/data/nats
+    healthcheck:
+      test: ["CMD", "nats-server", "-version"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - metro
+
+  # NATS monitoring UI (optional)
+  nats-ui:
+    image: synadia/nats-box:latest
+    container_name: metro-nats-ui
+    ports:
+      - "8080:8080"
+    environment:
+      NATS_URL: nats://nats:4222
+    depends_on:
+      - nats
+    networks:
+      - metro
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  nats_data:
+    driver: local
+
+networks:
+  metro:
+    driver: bridge
