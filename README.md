@@ -1,5 +1,7 @@
 # Metro
 
+![Metro Concept](./public/images/1.png)
+
 A high-performance transit routing and real-time train tracking platform built with Go.
 
 ## Overview
@@ -63,7 +65,3 @@ WebSocket Hub
   ↓
 Clients
 ```
-
-## Metro concept
-
-![Metro Concept](./public/images/1.png)
