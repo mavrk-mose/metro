@@ -2,40 +2,39 @@ name: Build and Push Docker image to GitHub Packages
 
 on:
   push:
-      branches:
-            - main
-            env:
-              IMAGE_NAME: ghcr.io/mavrk-mose/metro 
+    branches:
+      - main
 
-              jobs:
-                build:
-                    runs-on: ubuntu-latest
+env:
+  IMAGE_NAME: ghcr.io/mavrk-mose/metro
 
-                        steps:
-                              - name: Checkout repository
-                                      uses: actions/checkout@v4
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-                                            - name: Set up Go
-                                                    uses: actions/setup-go@v5
-                                                            with:
-                                                                      go-version: '1.25.1'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-                                                                      #      - name: Run Tests
-                                                                      #        run: |
-                                                                      #          go mod tidy
-                                                                      #          go test ./... -v
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.1'
 
-                                                                            - name: Log in to GitHub Container Registry
-                                                                                    uses: docker/login-action@v3
-                                                                                            with:
-                                                                                                      registry: ghcr.io
-                                                                                                                username: ${{ github.actor }}
-                                                                                                                          password: ${{ secrets.CR_PAT }}
+      # - name: Run Tests
+      #   run: |
+      #     go mod tidy
+      #     go test ./... -v
 
-                                                                                                                                - name: Build Docker image
-                                                                                                                                        run: |
-                                                                                                                                                  docker build -t $IMAGE_NAME:latest .
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.CR_PAT }}
 
-                                                                                                                                                        - name: Push Docker image
-                                                                                                                                                                run: |
-                                                                                                                                                                          docker push $IMAGE_NAME:latest
+      - name: Build Docker image
+        run: docker build -t $IMAGE_NAME:latest .
+
+      - name: Push Docker image
+        run: docker push $IMAGE_NAME:latest

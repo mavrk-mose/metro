@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/gorilla/websocket"
+	"github.com/nats-io/nats.go"
 	"github.com/redis/go-redis/v9"
 )
 

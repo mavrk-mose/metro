@@ -79,6 +79,8 @@ func loadSchedules(ctx context.Context, pg *pgxpool.Pool) (ScheduleMap, error) {
 	rows, err := pg.Query(ctx, `
 		SELECT station_id, line_id, direction, arrival_time, day_type
 		FROM schedules ORDER BY station_id, arrival_time`)
+	if err != nil {
+		return nil, err
 	}
 	defer rows.Close()
 
